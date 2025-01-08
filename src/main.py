@@ -150,3 +150,7 @@ async def get_system_info():
 async def get_available_models():
     """Get list of available Whisper models"""
     return {"models": transcriber.get_available_models()}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
