@@ -58,8 +58,43 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show result
             updateProgress(100, 'Transcrição concluída!');
             resultContainer.classList.remove('d-none');
-            transcriptionResult.textContent = data.transcription;
-            processingTime.textContent = `${data.processing_time} segundos`;
+            transcriptionResult.innerHTML = `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Texto Original</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>${data.original_text}</p>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Texto Corrigido</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>${data.corrected_text}</p>
+                    </div>
+                </div>
+                <div class="text-muted">
+                    <small>Tempo de processamento: ${data.processing_time} segundos</small>
+                </div>
+            `;
+            
+            // Mostra sugestões de correção se houver
+            if (data.suggestions && data.suggestions.length > 0) {
+                const suggestionsHtml = data.suggestions.map(s => `
+                    <div class="alert alert-info">
+                        Sugestão: Substituir "${s.original}" por "${s.suggestion}"
+                    </div>
+                `).join('');
+                
+                transcriptionResult.innerHTML += `
+                    <div class="mt-3">
+                        <h6>Sugestões de Correção:</h6>
+                        ${suggestionsHtml}
+                    </div>
+                `;
+            }
 
         } catch (error) {
             console.error('Error:', error);
@@ -141,4 +176,62 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Não foi possível copiar o texto. Por favor, tente selecionar e copiar manualmente.');
         });
     }
+
+    // Carrega as correções ao iniciar a página
+    async function loadCorrections() {
+        try {
+            const response = await fetch('/correction-stats');
+            const data = await response.json();
+            
+            const tableBody = document.getElementById('corrections-table-body');
+            tableBody.innerHTML = '';
+            
+            Object.entries(data.corrections).forEach(([wrong, correct]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${wrong}</td>
+                    <td>${correct}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            document.getElementById('corrections-section').style.display = 'flex';
+        } catch (error) {
+            console.error('Erro ao carregar correções:', error);
+        }
+    }
+
+    document.getElementById('correction-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const wrongText = document.getElementById('wrong-text').value;
+        const correctText = document.getElementById('correct-text').value;
+        
+        const formData = new FormData();
+        formData.append('wrong', wrongText);
+        formData.append('correct', correctText);
+        
+        try {
+            const response = await fetch('/add-correction', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                alert('Correção adicionada com sucesso!');
+                document.getElementById('wrong-text').value = '';
+                document.getElementById('correct-text').value = '';
+                loadCorrections();
+            } else {
+                const error = await response.json();
+                alert(`Erro ao adicionar correção: ${error.detail}`);
+            }
+        } catch (error) {
+            console.error('Erro ao adicionar correção:', error);
+            alert('Erro ao adicionar correção');
+        }
+    });
+
+    loadCorrections();
 });

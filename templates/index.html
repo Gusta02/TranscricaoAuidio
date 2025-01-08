@@ -73,6 +73,50 @@
                 </div>
             </div>
         </div>
+
+        <div class="row mt-4" id="corrections-section" style="display: none;">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Adicionar Correção</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="correction-form">
+                            <div class="mb-3">
+                                <label for="wrong-text" class="form-label">Texto Incorreto</label>
+                                <input type="text" class="form-control" id="wrong-text" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="correct-text" class="form-label">Texto Correto</label>
+                                <input type="text" class="form-control" id="correct-text" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Adicionar Correção</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Correções Existentes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="corrections-list" class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Texto Original</th>
+                                        <th>Correção</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="corrections-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- System Info Modal -->

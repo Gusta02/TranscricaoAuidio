@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, UploadFile, HTTPException, BackgroundTasks, Request, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse
@@ -59,87 +59,45 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/upload")
-async def upload_file(
-    file: UploadFile,
-    model: str = "base",
-    language: Optional[str] = "pt"
-):
-    """
-    Handle audio file upload and transcription
-    """
+async def upload_file(file: UploadFile = File(...)):
+    """Handle file upload and transcription"""
     try:
         # Validate file
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="No file provided")
+        if not file.filename.lower().endswith(('.mp3', '.wav', '.m4a')):
+            raise HTTPException(status_code=400, detail="Formato de arquivo não suportado")
+
+        # Save file temporarily
+        temp_file = Path("input") / file.filename
+        temp_file.parent.mkdir(exist_ok=True)
         
-        temp_path = get_temp_path(file.filename)
-        
-        # Save uploaded file
-        with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        
-        if not validate_audio_file(temp_path):
-            os.remove(temp_path)
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid audio file. Supported formats: .mp3, .wav, .m4a"
-            )
-        
-        # Process transcription immediately instead of background
         try:
-            start_time = time.time()
-            result = await process_transcription(
-                temp_path,
-                file.filename,
-                model,
-                language
-            )
-            end_time = time.time()
-            processing_time = round(end_time - start_time, 2)
+            contents = await file.read()
+            temp_file.write_bytes(contents)
             
-            return JSONResponse({
-                "message": "Transcrição concluída com sucesso",
-                "filename": file.filename,
-                "transcription": result["text"] if result else "Não foi possível transcrever o áudio",
-                "processing_time": processing_time
-            })
+            # Start transcription with timing
+            start_time = time.time()
+            
+            transcription_result = transcriber.transcribe(
+                str(temp_file),
+                language="pt",
+                task="transcribe"
+            )
+            
+            processing_time = time.time() - start_time
+            
+            # Add processing time to result
+            transcription_result["processing_time"] = round(processing_time, 2)
+            
+            return transcription_result
             
         finally:
             # Cleanup
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-        
+            if temp_file.exists():
+                temp_file.unlink()
+                
     except Exception as e:
-        logger.error(f"Upload error: {str(e)}")
+        logger.error(f"Erro na transcrição: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-async def process_transcription(
-    temp_path: Path,
-    original_filename: str,
-    model: str,
-    language: str
-):
-    """
-    Process audio transcription
-    """
-    try:
-        # Transcribe audio
-        result = transcriber.transcribe(
-            str(temp_path),
-            language=language
-        )
-        
-        # Save transcription to file
-        output_path = ensure_output_dir(original_filename)
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(result["text"])
-        
-        logger.info(f"Transcription completed: {output_path}")
-        return result
-        
-    except Exception as e:
-        logger.error(f"Transcription error: {str(e)}")
-        return None
 
 @app.get("/system-info")
 async def get_system_info():
@@ -150,3 +108,26 @@ async def get_system_info():
 async def get_available_models():
     """Get list of available Whisper models"""
     return {"models": transcriber.get_available_models()}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+@app.post("/add-correction")
+async def add_correction(wrong: str = Form(...), correct: str = Form(...)):
+    """Adiciona uma nova correção ao dicionário personalizado"""
+    try:
+        transcriber.add_correction(wrong, correct)
+        return {"status": "success", "message": f"Correção adicionada: '{wrong}' -> '{correct}'"}
+    except Exception as e:
+        logger.error(f"Erro ao adicionar correção: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/correction-stats")
+async def get_correction_stats():
+    """Retorna estatísticas sobre as correções aplicadas"""
+    try:
+        return transcriber.get_correction_stats()
+    except Exception as e:
+        logger.error(f"Erro ao obter estatísticas: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
