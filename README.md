@@ -1,27 +1,29 @@
-# API de Transcrição de Áudio
+# Transcrição de Áudio com Whisper
 
-API desenvolvida para transcrição de arquivos de áudio utilizando o modelo Whisper da OpenAI. A API é capaz de processar arquivos de áudio em diferentes formatos e fornecer uma transcrição precisa do conteúdo, além de informações detalhadas sobre o tempo de processamento de cada etapa.
+Uma aplicação web para transcrição de áudio usando FastAPI e Whisper, com interface amigável e processamento eficiente.
 
-## Funcionalidades
+## 🚀 Funcionalidades
 
-- Aceita arquivos de áudio nos formatos `.wav`, `.mp3` e `.flac`
-- Limite configurável de tamanho de arquivo (padrão: 50MB)
-- Diferentes modelos de transcrição disponíveis (base, small, medium, large)
-- Monitoramento detalhado do tempo de processamento de cada etapa
-- Interface Swagger para testes e documentação
+- Upload de arquivos de áudio (MP3, WAV, M4A)
+- Transcrição automática usando OpenAI Whisper
+- Interface web moderna e responsiva
+- Suporte a GPU para processamento acelerado
+- Sistema de logging completo
+- Medição de tempo de processamento
+- Cópia fácil do texto transcrito
 
-## Requisitos
+## 📋 Pré-requisitos
 
 - Python 3.8+
-- FFmpeg (para processamento de diferentes formatos de áudio)
-- Dependências Python listadas em `requirements.txt`
+- FFmpeg instalado e no PATH
+- GPU (opcional, para melhor performance)
 
-## Instalação
+## 🔧 Instalação
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/Gusta02/TranscricaoAuidio.git
-cd TranscricaoAuidio
+git clone https://github.com/seu-usuario/TranscricaoAudio.git
+cd TranscricaoAudio
 ```
 
 2. Crie um ambiente virtual:
@@ -30,11 +32,12 @@ python -m venv venv
 ```
 
 3. Ative o ambiente virtual:
+- Windows:
 ```bash
-# Windows
-.\venv\Scripts\activate
-
-# Linux/Mac
+venv\Scripts\activate
+```
+- Linux/Mac:
+```bash
 source venv/bin/activate
 ```
 
@@ -43,83 +46,85 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-5. Configure as variáveis de ambiente:
-- Copie o arquivo `.env.example` para `.env`
-- Ajuste as variáveis conforme necessário
+## 🎯 Uso
 
-## Executando a API
-
-Para iniciar o servidor de desenvolvimento:
-
+1. Inicie o servidor:
 ```bash
-uvicorn app.main:app --reload
+uvicorn src.main:app --reload
 ```
 
-A API estará disponível em `http://localhost:8000`
+2. Acesse a aplicação:
+- Interface Web: http://localhost:8000
+- Documentação da API: http://localhost:8000/docs
 
-## Endpoints
+## 📁 Estrutura do Projeto
 
-### POST /transcribe
-
-Endpoint para transcrição de arquivos de áudio.
-
-**Parâmetros:**
-- `file`: Arquivo de áudio (formatos suportados: .wav, .mp3, .flac)
-- `model_size`: Tamanho do modelo Whisper (opcional, padrão: "base")
-
-**Limitações:**
-- Tamanho máximo do arquivo: 50MB
-- Formatos suportados: .wav, .mp3, .flac
-
-**Exemplo de Resposta:**
-```json
-{
-    "filename": "audio.mp3",
-    "text": "Texto transcrito do áudio...",
-    "status": "success",
-    "processing_time": {
-        "steps": {
-            "validação_formato": {
-                "timestamp": "2025-01-08 17:35:43",
-                "elapsed_seconds": 0.05,
-                "step_duration": 0.05
-            },
-            "validação_tamanho": {
-                "timestamp": "2025-01-08 17:35:43",
-                "elapsed_seconds": 0.10,
-                "step_duration": 0.05
-            }
-        },
-        "total_time_seconds": 5.5
-    }
-}
+```
+TranscricaoAudio/
+├── src/
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── transcriber.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── helpers.py
+│   ├── __init__.py
+│   └── main.py
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       └── main.js
+├── templates/
+│   └── index.html
+├── input/
+├── output/
+├── logs/
+└── requirements.txt
 ```
 
-## Monitoramento de Tempo
+## 🛠️ Tecnologias Utilizadas
 
-A API monitora o tempo de processamento das seguintes etapas:
+- [FastAPI](https://fastapi.tiangolo.com/) - Framework web
+- [Whisper](https://github.com/openai/whisper) - Modelo de transcrição
+- [PyTorch](https://pytorch.org/) - Framework de deep learning
+- [Bootstrap](https://getbootstrap.com/) - Framework CSS
 
-1. `validação_formato`: Validação do formato do arquivo
-2. `validação_tamanho`: Verificação do tamanho do arquivo
-3. `salvamento_arquivo`: Salvamento do arquivo temporário
-4. `carregamento_modelo`: Carregamento do modelo Whisper
-5. `transcrição`: Processo de transcrição do áudio
-6. `limpeza`: Remoção de arquivos temporários
+## ✨ Recursos
 
-## Documentação da API
+- Interface responsiva
+- Feedback em tempo real
+- Validação de arquivos
+- Gestão eficiente de memória
+- Suporte a múltiplos formatos de áudio
 
-Acesse a documentação interativa em:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+## 📊 Melhorias Implementadas
 
-## Contribuindo
+- [x] Otimização de performance
+- [x] Sistema de logging robusto
+- [x] Melhor gestão de arquivos
+- [x] Interface mais responsiva
+- [x] Feedback mais detalhado
+- [x] Contador de tempo de processamento
+
+## 🤝 Contribuindo
 
 1. Faça um Fork do projeto
-2. Crie sua Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a Branch (`git push origin feature/AmazingFeature`)
+2. Crie uma Branch para sua Feature (`git checkout -b feature/AmazingFeature`)
+3. Faça o Commit de suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Faça o Push para a Branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## Licença
+## 📝 Licença
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto está sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## ✍️ Autores
+
+* **Seu Nome** - *Trabalho Inicial* - [SeuUsuario](https://github.com/SeuUsuario)
+
+## 🎁 Expressões de Gratidão
+
+* Compartilhe este projeto com outras pessoas 📢
+* Convide alguém da equipe para uma café ☕ 
+* Um agradecimento publicamente 🤓

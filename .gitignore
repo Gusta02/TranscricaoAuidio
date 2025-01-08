@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -23,6 +22,7 @@ wheels/
 
 # Virtual Environment
 venv/
+env/
 ENV/
 
 # IDE
@@ -31,9 +31,19 @@ ENV/
 *.swp
 *.swo
 
-# Ambiente
+# Project specific
+input/*
+output/*
+logs/*
+models/*
 .env
 
-# Arquivos temporários
-temp/
-*.log
+# Keep directories but ignore contents
+!input/.gitkeep
+!output/.gitkeep
+!logs/.gitkeep
+!models/.gitkeep
+
+# System
+.DS_Store
+Thumbs.db
