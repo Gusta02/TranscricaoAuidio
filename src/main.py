@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, UploadFile, HTTPException, BackgroundTasks, Request, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse
@@ -154,3 +154,22 @@ async def get_available_models():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+@app.post("/add-correction")
+async def add_correction(wrong: str = Form(...), correct: str = Form(...)):
+    """Adiciona uma nova correção ao dicionário personalizado"""
+    try:
+        transcriber.add_correction(wrong, correct)
+        return {"status": "success", "message": f"Correção adicionada: '{wrong}' -> '{correct}'"}
+    except Exception as e:
+        logger.error(f"Erro ao adicionar correção: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/correction-stats")
+async def get_correction_stats():
+    """Retorna estatísticas sobre as correções aplicadas"""
+    try:
+        return transcriber.get_correction_stats()
+    except Exception as e:
+        logger.error(f"Erro ao obter estatísticas: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
